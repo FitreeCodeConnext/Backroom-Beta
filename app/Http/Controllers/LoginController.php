@@ -63,8 +63,11 @@ class LoginController extends Controller
         if (isset($responseData['Status']) && $responseData['Status'] === '200') {
             $user_info = $responseData['user_info'][0];
             Session::put('auth_user', [
-                'username' => $username,
+                'user_id' => $user_info['user_id'],
                 'user_name' => $user_info['user_name'],
+                'branch_id' => $user_info['branch_id'],
+                'user_lock' => $user_info['user_lock'],
+                'activeflag' => $user_info['activeflag'],
             ]);
 
             return redirect()->intended('dashboard');

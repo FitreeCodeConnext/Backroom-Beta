@@ -13,11 +13,12 @@ class VendorController extends Controller
     public function index()
     {
         try {
+            $sessions = session('auth_user');
             $api = Http::post(
                 '10.10.1.7:9501/backroom/v1/vendor',
                 [
-                    'branch_id' => '000972',
-                    'user_id' => 'code'
+                    'branch_id' => $sessions['branch_id'],
+                    'user_id' => $sessions['user_id']
                 ]
             );
     
@@ -29,32 +30,71 @@ class VendorController extends Controller
                 $vendor_name = $value['vendor_name'];
                 $vendorno = $value['vendorno'];
             }
-    
+            
+            
+            
             // dd($vendor_info);
     
             if (isset($api_response['Status'])) {
-                return view('pages.vendor', compact('vendor_info'));
+                return view('pages.vendors.index', compact('vendor_info'));
             } else {
                 return redirect()->route('vendor')->withErrors(['error' => 'Api Data is Not Ready to use']);
             }
         } catch (RequestException $e) {
             $errorMessage = 'ไม่สามารถเชื่อมต่อกับ API ได้';
             Log::error($errorMessage . ' ' . $e->getMessage());
-            return view('pages.vendor', ['error' => $errorMessage]);
+            return view('pages.vendors.index', ['error' => $errorMessage]);
          }catch (\Exception $e) {
             $errorMessage = ' เกิดข้อผิดพลาดทางเซิร์ฟเวอร์ โปรดตรวจสอบการทำงานของเซิร์ฟเวอร์';
             Log::error($errorMessage . ' ' . $e->getMessage());
-            return view('pages.vendor', ['error' => $errorMessage]);
+            return view('pages.vendors.index', ['error' => $errorMessage]);
     }
+    }
+    public function create(){
+        $sessions = session('auth_user');
+        $branch_id = $sessions['branch_id'];
+        $terminal_api = Http::post(
+            '10.10.1.7:9501/backroom/v1/terminal',
+            [
+                'branch_id' => $branch_id,
+                'user_id' => $sessions['user_id'],
+            ]
+        );
+
+        $terminal_api_response = json_decode($terminal_api, true);
+        $terminal_info = $terminal_api_response['terminal_info'];
+        
+        return view('pages.vendors.create',compact('terminal_info','branch_id'));
     }
 
-    public function show(Request $request){
-        $vendor_id = $request->vendor_id;
+    public function store(Request $request){
+
+        $data = [
+            'vendor_id' => $request->input('vendor_id'),
+            'branch_id' => $request->input('branch_id'),
+            'term_id' => $request->input('term_id'),
+            'term_seq' => $request->input('term_seq'),
+            'vendor_name' => $request->input('vendor_name'),
+            'issuedate' => $request->input('issuedate'),
+            'validdate' => $request->input('validdate'),
+        ];
+            
+
+        
+       
+        dd($data);
+    }
+
+    public function edit(Request $request){
+        $sessions = session('auth_user');
+        $b_id = $sessions['branch_id'];
+
+        $vendor_id = $request->vendor;
         $api = Http::post(
             '10.10.1.7:9501/backroom/v1/vendor',
             [
-                'branch_id' => '000972',
-                'user_id' => 'code'
+                'branch_id' => $b_id,
+                'user_id' => $sessions['user_id']
             ]
         );
         $api_response = json_decode($api->body(), true);
@@ -124,10 +164,19 @@ class VendorController extends Controller
                 }
             }
         }
+        $terminal_api = Http::post(
+            '10.10.1.7:9501/backroom/v1/terminal',
+            [
+                'branch_id' => $b_id,
+                'user_id' => $sessions['user_id']
+            ]
+        );
 
+        $terminal_api_response = json_decode($terminal_api, true);
+        $terminal_info = $terminal_api_response['terminal_info'];
         // dd($datagroup);
         if (isset($vendor_id)) {
-           return view('pages.vendordetail',compact('vendor_id','datagroup'));
+           return view('pages.vendors.edit',compact('vendor_id','datagroup','b_id','terminal_info'));
         }
     }
 }

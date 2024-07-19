@@ -2,9 +2,15 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\PaymentGroupController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductGroupController;
+use App\Http\Controllers\ProductSapController;
+use App\Http\Controllers\ProductUnitController;
 use App\Http\Controllers\TerminalController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\VendorGroupController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -31,14 +37,22 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::group(['middleware' => 'auth.custom'], function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
     // Terminal
-    Route::get('/terminal', [TerminalController::class, 'index'])->name('terminal.index');
-    Route::get('/terminal-show/{term_id}', [TerminalController::class, 'show'])->name('terminal-show');
-    Route::put('/terminal-update/{term_id}', [TerminalController::class, 'update'])->name('terminal-update');
+    Route::resource('/terminal', TerminalController::class,);
     Route::get('/export-csv', [TerminalController::class, 'export'])->name('export.csv');
     // Vendor 
-    Route::get('/vendor', [VendorController::class, 'index'])->name('vendor.index');
+    Route::resource('/vendor', VendorController::class);
+    Route::resource('/vendor-group', VendorGroupController::class);
 
     // Product
-    Route::get('/product', [ProductController::class, 'index'])->name('product.index');
+    Route::resource('/product', ProductController::class);
+    Route::resource('/productgroup', ProductGroupController::class);
+    Route::resource('/product-unit', ProductUnitController::class);
+    Route::resource('/product-sap', ProductSapController::class);
+    
+    // Payment
+    Route::resource('/payment-group', PaymentGroupController::class);
+
+    // User
+    Route::resource('/user', UserController::class);
 
 });

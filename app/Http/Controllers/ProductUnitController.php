@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use GuzzleHttp\Client;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
-class ProductController extends Controller
+class ProductUnitController extends Controller
 {
-    public function index(Request $request){
-            $curl = curl_init();
+    public function index(){
+        $curl = curl_init();
 
             curl_setopt_array($curl, array(
             CURLOPT_URL => 'localhost/api/test01/product/read.php',
@@ -27,15 +25,16 @@ class ProductController extends Controller
             $data = json_decode($response, true);
             // dd($data);
 
-            $i = 1;
-        
-       
-        return view("pages.products.index",compact('data','i'));
+        return view("pages.product_units.index" ,compact("data"));
     }
-
     public function create(){
-        return view("pages.products.create");
+        return view("pages.product_units.create");
     }
-
     
+    public function store(Request $request){
+        $unit_id = $request->input("unitid");
+        $unit_name = $request->input("unitname");
+        $unit_check = $request->input("unitcheck");
+        dd($unit_id,$unit_name,$unit_check);
+    }
 }

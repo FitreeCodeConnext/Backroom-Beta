@@ -38,6 +38,7 @@
 @section('scripts')
     <script src="/resources/js/app.js"></script>
     <script src="/resources/js/charts_data.js"></script>
+    
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", function() {
             // Default date selection is today

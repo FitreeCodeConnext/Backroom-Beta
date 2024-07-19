@@ -13,11 +13,13 @@ class TerminalController extends Controller
     public function index()
     {
         try {
+
+            $sessions = session('auth_user');
             $api = Http::post(
                 '10.10.1.7:9501/backroom/v1/terminal',
                 [
-                    'branch_id' => '000972',
-                    'user_id' => 'code'
+                    'branch_id' => $sessions['branch_id'],
+                    'user_id' => $sessions['user_id']
                 ]
             );
     
@@ -33,31 +35,66 @@ class TerminalController extends Controller
             // dd($terminal_id);
     
             if (isset($api_response['Status'])) {
-                return view('pages.terminal', compact('terminal_info'));
+                return view('pages.terminals.index', compact('terminal_info'));
             } else {
                 return redirect()->route('teminal')->withErrors(['error' => 'Api Data is Not Ready to use']);
             }
         } catch (RequestException $e) {
             $errorMessage = 'ไม่สามารถเชื่อมต่อกับ API ได้';
             Log::error($errorMessage . ' ' . $e->getMessage());
-            return view('pages.dashboard', ['error' => $errorMessage]);
+            return view('pages.terminals.index', ['error' => $errorMessage]);
          }catch (\Exception $e) {
             $errorMessage = ' เกิดข้อผิดพลาดทางเซิร์ฟเวอร์ โปรดตรวจสอบการทำงานของเซิร์ฟเวอร์';
             Log::error($errorMessage . ' ' . $e->getMessage());
-            return view('pages.dashboard', ['error' => $errorMessage]);
+            return view('pages.terminals.index', ['error' => $errorMessage]);
     }
         
     }
 
-    public function show(Request $request)
-    {
-        $term_id = $request->term_id;
+    public function create(){
+        return view('pages.terminals.create');
+    }
 
+    public function store(Request $request){
+        $data = [
+            'branch_id' => $request->input('branch_id'),
+            'term_name' => $request->input('term_name'),
+            'pmino' => $request->input('pmino'),
+            'serialno' => $request->input('serialno'),
+            'ipaddress' => $request->input('ipaddress'),
+            'activeflag' => $request->input('activeflag'),
+            'slipprefix' => $request->input('slipprefix'),
+            'file_address' => $request->input('file_address'),
+            'download_flag' => $request->input('download_flag'),
+            'download_date' => $request->input('download_date'),
+        ];
+        $terminal_function_group = [
+            "equipment" => $request->input('equipment'),
+            "type_equipment" =>$request->input('type_equipment'),
+            "void_list" => $request->input('void_list'),
+            "supervoid" => $request->input('supervoid'),
+            "ip_check" => $request->input('ip_check'),
+            "show_score" => $request->input('show_score'),
+            "check_cardmoney" => $request->input('check_cardmoney'),
+            "print_type" => $request->input('print_type'),
+            "balance_enough" => $request->input('balance_enough'),
+            "show_balance" => $request->input('show_balance'),
+            "expire" => $request->input('expire'),
+
+        ];
+
+        dd($data,$terminal_function_group);
+    }
+
+    public function edit(Request $request)
+    {
+        $term_id = $request->terminal;
+        $sessions = session('auth_user');
         $api = Http::post(
             '10.10.1.7:9501/backroom/v1/terminal',
             [
-                'branch_id' => '000972',
-                'user_id' => 'code'
+                'branch_id' => $sessions['branch_id'],
+                'user_id' => $sessions['user_id'],
             ]
         );
 
@@ -107,14 +144,12 @@ class TerminalController extends Controller
 
         // dd($headers,$terminal_function_group);
         if (isset($term_id)) {
-            return view('pages.terminaldetail', compact('datagroup', 'term_id', 'terminal_function_group'));
+            return view('pages.terminals.edit', compact('datagroup', 'term_id', 'terminal_function_group'));
         }
     }
 
     public function update(Request $request, $term_id)
     {
-
-
         $data = [
             'branch_id' => $request->input('branch_id'),
             'term_name' => $request->input('term_name'),
@@ -145,10 +180,12 @@ class TerminalController extends Controller
         $terminal_funtion = implode($terminal_function_group);
         // dd($term_id, $data,$terminal_funtion);
 
+        $sessions = session('auth_user');
 
         $api = Http::post('10.10.1.7:9501/backroom/v1/terminal/update', [
-            'branch_id' => '000972',
-            'user_id' => 'code',
+            'branch_id' => $sessions['branch_id'],
+            'user_id' => $sessions['user_id'],
+
             'terminal_data' => [
                 'term_id' => $term_id,
                 'branch_id' => $data['branch_id'],
@@ -171,18 +208,25 @@ class TerminalController extends Controller
         // dd($term_data['Status']);
 
         if (isset($term_data['Status'])) {
-            return redirect()->route('terminal.index')->with('success', 'Data '. $term_id .' is Updated.');
+            return redirect()->route('terminal.index')->with('success', 'Terminal '. $term_id .' is Updated.');
         } else {
-            return redirect()->route('terminal.index')->with('error', 'Data is Not Updated!!!');
+            return redirect()->route('terminal.index')->with('error', 'Terminal is Not Updated!!!');
         }
         // return response()->json($term_data);
     }
+    public function destroy($id){
+       $term_id = $id;
+       dd($term_id);
+    }
+
     public function export()
     {
+        $sessions = session('auth_user');
+
         // Make the API request
         $api = Http::post('http://10.10.1.7:9501/backroom/v1/terminal', [
-            'branch_id' => '000972',
-            'user_id' => 'code'
+            'branch_id' => $sessions['branch_id'],
+            'user_id' => $sessions['user_id']
         ]);
 
         // Check if API request was successful
@@ -224,4 +268,6 @@ class TerminalController extends Controller
         }
         fclose($file);
     }
+
+    
 }
